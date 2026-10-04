@@ -123,7 +123,7 @@ export class ReservasService {
     }
   }
   async listarReservasPaciente(idPaciente: number): Promise<ListReservaDTO[]> {
-    return await this.repository.find({
+    const reservas: Reserva[] = await this.repository.find({
       where: {
         idPaciente: idPaciente,
       },
@@ -131,5 +131,21 @@ export class ReservasService {
         fechaHora: 'ASC',
       },
     });
+
+    const dtoList: ListReservaDTO[] = [];
+
+    for (const r of reservas) {
+      const dto = new ListReservaDTO();
+
+      dto.id = r.id;
+      dto.idMedico = r.idMedico;
+      dto.fechaHora = r.fechaHora;
+      dto.estado = r.estado;
+      dto.valorConsulta = r.valorConsulta;
+
+      dtoList.push(dto);
+    }
+
+    return dtoList;
   }
 }

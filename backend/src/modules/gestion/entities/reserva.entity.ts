@@ -6,9 +6,10 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { Usuario } from '../../auth/entities/usuario.entity.js';
 import { EstadosReservasEnum } from '../enums/estados-reservas.enum.js';
-import { Medico } from './medico.entity.js';
+
+import type { Usuario } from '../../auth/entities/usuario.entity.js';
+import type { Medico } from './medico.entity.js';
 
 @Entity({ name: 'reservas' })
 export class Reserva {
@@ -30,11 +31,11 @@ export class Reserva {
   @Column({ name: 'valor_consulta' })
   valorConsulta: number;
 
-  @ManyToOne(() => Medico)
+  @ManyToOne('Medico')
   @JoinColumn({ name: 'id_medico' })
   medico: Medico;
 
-  @ManyToOne(() => Usuario)
+  @ManyToOne('Usuario')
   @JoinColumn({ name: 'id_paciente' })
   paciente: Usuario;
 }
