@@ -1,0 +1,135 @@
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { Usuario } from '../../auth/entities/usuario.entity.js';
+import { Medico } from '../entities/medico.entity.js';
+import { Reserva } from '../entities/reserva.entity.js';
+
+import { CreateReservaDto } from '../dtos/input/create-reserva.dto.js';
+
+import { EstadosUsuariosEnum } from '../../auth/enums/estados-usuarios.enum.js';
+import { RolesUsuariosEnum } from '../../auth/enums/roles-usuarios.enum.js';
+import { ListReservaDTO } from '../dtos/output/list-reserva.dto.js';
+import { EstadosReservasEnum } from '../enums/estados-reservas.enum.js';
+
+@Injectable()
+export class ReservasService {
+  constructor(
+    @InjectRepository(Reserva)
+    private readonly repository: Repository<Reserva>,
+
+    @InjectRepository(Medico)
+    private readonly medicosRepository: Repository<Medico>,
+
+    @InjectRepository(Usuario)
+    private readonly usuariosRepository: Repository<Usuario>,
+  ) {}
+
+  async crearReserva(
+    idPaciente: number,
+    dto: CreateReservaDto,
+  ): Promise<{ id: number }> {
+    const paciente = await this.usuariosRepository.findOne({
+      where: {
+        id: idPaciente,
+      },
+    });
+
+    if (!paciente) {
+      throw new BadRequestException('El paciente indicado no existe');
+    }
+
+    if (paciente.estado !== EstadosUsuariosEnum.ACTIVO) {
+      throw new BadRequestException('El paciente no se encuentra activo');
+    }
+
+    if (paciente.rol !== RolesUsuariosEnum.PACIENTE) {
+      throw new BadRequestException('El usuario indicado no es un paciente');
+    }
+
+    const medico = await this.medicosRepository.findOne({
+      where: {
+        id: dto.idMedico,
+      },
+    });
+
+    if (!medico) {
+      throw new BadRequestException('El médico indicado no existe');
+    }
+
+    const fechaHora = new Date(dto.fechaHora);
+
+    this.validarFechaReserva(fechaHora);
+
+    const reservaExistente = await this.repository.findOne({
+      where: {
+        idMedico: dto.idMedico,
+        fechaHora,
+        estado: EstadosReservasEnum.ACTIVO,
+      },
+    });
+
+    if (reservaExistente) {
+      throw new BadRequestException(
+        'El médico ya tiene un turno reservado en ese horario',
+      );
+    }
+
+    const reserva = this.repository.create();
+
+    reserva.idMedico = dto.idMedico;
+    reserva.idPaciente = idPaciente;
+    reserva.fechaHora = fechaHora;
+    reserva.estado = EstadosReservasEnum.ACTIVO;
+
+    reserva.valorConsulta = medico.valorConsulta;
+
+    await this.repository.save(reserva);
+
+    return {
+      id: reserva.id,
+    };
+  }
+  private validarFechaReserva(fechaHora: Date): void {
+    const ahora = new Date();
+
+    if (fechaHora <= ahora) {
+      throw new BadRequestException(
+        'La fecha del turno debe ser posterior a la fecha actual',
+      );
+    }
+
+    const limite = new Date(ahora);
+    limite.setDate(limite.getDate() + 30);
+
+    if (fechaHora > limite) {
+      throw new BadRequestException(
+        'Los turnos solo pueden reservarse con hasta 30 días de anticipación',
+      );
+    }
+
+    const hora = fechaHora.getHours();
+
+    if (
+      hora < 8 ||
+      hora >= 16 ||
+      fechaHora.getMinutes() !== 0 ||
+      fechaHora.getSeconds() !== 0
+    ) {
+      throw new BadRequestException(
+        'Los turnos deben comenzar entre las 8 y las 15 horas, en horarios exactos',
+      );
+    }
+  }
+  async listarReservasPaciente(idPaciente: number): Promise<ListReservaDTO[]> {
+    return await this.repository.find({
+      where: {
+        idPaciente: idPaciente,
+      },
+      order: {
+        fechaHora: 'ASC',
+      },
+    });
+  }
+}
