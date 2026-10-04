@@ -3,8 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Usuario } from '../../auth/entities/usuario.entity.js';
-import { Medico } from '../entities/medico.entity.js';
+//import { Medico } from '../entities/medico.entity.js';
+import type { Medico } from '../entities/medico.entity.js';
 import { Reserva } from '../entities/reserva.entity.js';
+import { MedicosService } from './medicos.service.js';
 
 import { CreateReservaDto } from '../dtos/input/create-reserva.dto.js';
 
@@ -19,11 +21,13 @@ export class ReservasService {
     @InjectRepository(Reserva)
     private readonly repository: Repository<Reserva>,
 
-    @InjectRepository(Medico)
-    private readonly medicosRepository: Repository<Medico>,
+    // @InjectRepository(Medico)
+    // private readonly medicosRepository: Repository<Medico>,
 
     @InjectRepository(Usuario)
     private readonly usuariosRepository: Repository<Usuario>,
+
+    private readonly medicosService: MedicosService,
   ) {}
 
   async crearReserva(
@@ -48,15 +52,9 @@ export class ReservasService {
       throw new BadRequestException('El usuario indicado no es un paciente');
     }
 
-    const medico = await this.medicosRepository.findOne({
-      where: {
-        id: dto.idMedico,
-      },
-    });
-
-    if (!medico) {
-      throw new BadRequestException('El médico indicado no existe');
-    }
+    const medico: Medico = await this.medicosService.obtenerMedicoPorId(
+      dto.idMedico,
+    );
 
     const fechaHora = new Date(dto.fechaHora);
 

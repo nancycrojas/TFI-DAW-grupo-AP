@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Usuario } from '../auth/entities/usuario.entity.js';
 import { Medico } from './entities/medico.entity.js';
 import { Reserva } from './entities/reserva.entity.js';
+import { MedicosService } from './services/medicos.service.js';
 
 import { ReservasController } from './controllers/reservas.controller.js';
 import { ReservasService } from './services/reservas.service.js';
@@ -11,7 +12,7 @@ import { ReservasService } from './services/reservas.service.js';
 @Module({
   imports: [TypeOrmModule.forFeature([Usuario, Medico, Reserva])],
   controllers: [ReservasController],
-  providers: [ReservasService],
+  providers: [ReservasService, MedicosService],
   exports: [],
 })
 export class GestionModule {}
