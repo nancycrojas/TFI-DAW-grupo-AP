@@ -6,12 +6,13 @@ import { Medico } from './entities/medico.entity.js';
 import { Reserva } from './entities/reserva.entity.js';
 import { MedicosService } from './services/medicos.service.js';
 
+import { MedicosController } from './controllers/medicos.controller.js';
 import { ReservasController } from './controllers/reservas.controller.js';
 import { ReservasService } from './services/reservas.service.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Usuario, Medico, Reserva])],
-  controllers: [ReservasController],
+  controllers: [ReservasController, MedicosController],
   providers: [ReservasService, MedicosService],
   exports: [],
 })
