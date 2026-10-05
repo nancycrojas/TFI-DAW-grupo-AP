@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Usuario } from '../../auth/entities/usuario.entity.js';
-//import { Medico } from '../entities/medico.entity.js';
 import type { Medico } from '../entities/medico.entity.js';
 import { Reserva } from '../entities/reserva.entity.js';
 import { MedicosService } from './medicos.service.js';
@@ -20,9 +19,6 @@ export class ReservasService {
   constructor(
     @InjectRepository(Reserva)
     private readonly repository: Repository<Reserva>,
-
-    // @InjectRepository(Medico)
-    // private readonly medicosRepository: Repository<Medico>,
 
     @InjectRepository(Usuario)
     private readonly usuariosRepository: Repository<Usuario>,
@@ -145,5 +141,67 @@ export class ReservasService {
     }
 
     return dtoList;
+  }
+
+  async cancelarReservaPaciente(
+    idReserva: number,
+    idPaciente: number,
+  ): Promise<void> {
+    const reserva: Reserva | null = await this.repository.findOne({
+      where: {
+        id: idReserva,
+        idPaciente: idPaciente,
+      },
+    });
+
+    if (!reserva) {
+      throw new BadRequestException('La reserva indicada no existe');
+    }
+
+    if (reserva.estado !== EstadosReservasEnum.ACTIVO) {
+      throw new BadRequestException('La reserva no se encuentra activa');
+    }
+
+    const hoy = new Date();
+    const fechaReserva = new Date(reserva.fechaHora);
+
+    hoy.setHours(0, 0, 0, 0);
+    fechaReserva.setHours(0, 0, 0, 0);
+
+    if (fechaReserva <= hoy) {
+      throw new BadRequestException(
+        'La reserva solo puede cancelarse hasta el día anterior a la consulta',
+      );
+    }
+
+    reserva.estado = EstadosReservasEnum.CANCELADO;
+
+    await this.repository.save(reserva);
+  }
+
+  async cancelarReservaAdministrador(idReserva: number): Promise<void> {
+    const reserva: Reserva | null = await this.repository.findOneBy({
+      id: idReserva,
+    });
+
+    if (!reserva) {
+      throw new BadRequestException('La reserva indicada no existe');
+    }
+
+    if (reserva.estado !== EstadosReservasEnum.ACTIVO) {
+      throw new BadRequestException('La reserva no se encuentra activa');
+    }
+
+    const ahora = new Date();
+
+    if (reserva.fechaHora <= ahora) {
+      throw new BadRequestException(
+        'No se puede cancelar una reserva cuya consulta ya comenzó',
+      );
+    }
+
+    reserva.estado = EstadosReservasEnum.CANCELADO;
+
+    await this.repository.save(reserva);
   }
 }

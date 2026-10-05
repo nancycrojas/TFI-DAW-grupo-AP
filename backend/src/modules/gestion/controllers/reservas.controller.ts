@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 
@@ -28,11 +29,29 @@ export class ReservasController {
     return await this.service.listarReservasPaciente(idPaciente);
   }
 
+  @ApiBearerAuth()
   @Post('pacientes/:idPaciente')
   async crearReserva(
     @Param('idPaciente', ParseIntPipe) idPaciente: number,
     @Body() dto: CreateReservaDto,
   ): Promise<{ id: number }> {
     return await this.service.crearReserva(idPaciente, dto);
+  }
+
+  @ApiBearerAuth()
+  @Put('pacientes/:idPaciente/:idReserva/cancelar')
+  async cancelarReservaPaciente(
+    @Param('idPaciente', ParseIntPipe) idPaciente: number,
+    @Param('idReserva', ParseIntPipe) idReserva: number,
+  ): Promise<void> {
+    await this.service.cancelarReservaPaciente(idReserva, idPaciente);
+  }
+
+  @ApiBearerAuth()
+  @Put('administradores/:idReserva/cancelar')
+  async cancelarReservaAdministrador(
+    @Param('idReserva', ParseIntPipe) idReserva: number,
+  ): Promise<void> {
+    await this.service.cancelarReservaAdministrador(idReserva);
   }
 }
