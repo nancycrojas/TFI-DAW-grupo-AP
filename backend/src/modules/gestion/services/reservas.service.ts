@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 
 import { Usuario } from '../../auth/entities/usuario.entity.js';
 import type { Medico } from '../entities/medico.entity.js';
@@ -8,6 +8,7 @@ import { Reserva } from '../entities/reserva.entity.js';
 import { MedicosService } from './medicos.service.js';
 
 import { CreateReservaDto } from '../dtos/input/create-reserva.dto.js';
+import { ListTurnoMedicoDTO } from '../dtos/output/list-turno-medico.dto.js';
 
 import { EstadosUsuariosEnum } from '../../auth/enums/estados-usuarios.enum.js';
 import { RolesUsuariosEnum } from '../../auth/enums/roles-usuarios.enum.js';
@@ -201,6 +202,89 @@ export class ReservasService {
     }
 
     reserva.estado = EstadosReservasEnum.CANCELADO;
+
+    await this.repository.save(reserva);
+  }
+
+  async listarTurnosMedico(
+    idMedico: number,
+    fecha: string,
+  ): Promise<ListTurnoMedicoDTO[]> {
+    await this.medicosService.obtenerMedicoPorId(idMedico);
+
+    const inicio = new Date(`${fecha}T00:00:00`);
+    const fin = new Date(`${fecha}T23:59:59.999`);
+
+    if (isNaN(inicio.getTime())) {
+      throw new BadRequestException('La fecha indicada no es válida');
+    }
+
+    const reservas: Reserva[] = await this.repository.find({
+      where: {
+        idMedico: idMedico,
+        fechaHora: Between(inicio, fin),
+      },
+      order: {
+        fechaHora: 'ASC',
+      },
+    });
+
+    const dtoList: ListTurnoMedicoDTO[] = [];
+
+    for (const r of reservas) {
+      const dto = new ListTurnoMedicoDTO();
+
+      dto.id = r.id;
+      dto.idPaciente = r.idPaciente;
+      dto.fechaHora = r.fechaHora;
+      dto.estado = r.estado;
+      dto.valorConsulta = r.valorConsulta;
+
+      dtoList.push(dto);
+    }
+
+    return dtoList;
+  }
+
+  async marcarAtendido(idMedico: number, idReserva: number): Promise<void> {
+    await this.cambiarEstadoTurnoMedico(
+      idMedico,
+      idReserva,
+      EstadosReservasEnum.ATENDIDO,
+    );
+  }
+
+  async marcarAusente(idMedico: number, idReserva: number): Promise<void> {
+    await this.cambiarEstadoTurnoMedico(
+      idMedico,
+      idReserva,
+      EstadosReservasEnum.AUSENTE,
+    );
+  }
+
+  private async cambiarEstadoTurnoMedico(
+    idMedico: number,
+    idReserva: number,
+    estado: EstadosReservasEnum,
+  ): Promise<void> {
+    const reserva: Reserva | null = await this.repository.findOne({
+      where: {
+        id: idReserva,
+        idMedico: idMedico,
+      },
+    });
+
+    if (!reserva) {
+      throw new BadRequestException(
+        'La reserva indicada no pertenece al médico',
+      );
+    }
+
+    if (reserva.estado !== EstadosReservasEnum.ACTIVO) {
+      throw new BadRequestException('La reserva no se encuentra activa');
+    }
+
+    reserva.estado = estado;
 
     await this.repository.save(reserva);
   }
