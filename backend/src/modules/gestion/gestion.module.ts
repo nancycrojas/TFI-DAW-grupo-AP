@@ -10,8 +10,10 @@ import { MedicosController } from './controllers/medicos.controller.js';
 import { ReservasController } from './controllers/reservas.controller.js';
 import { ReservasService } from './services/reservas.service.js';
 
+import { AuthModule } from '../auth/auth.module.js';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([Usuario, Medico, Reserva])],
+  imports: [TypeOrmModule.forFeature([Usuario, Medico, Reserva]), AuthModule],
   controllers: [ReservasController, MedicosController],
   providers: [ReservasService, MedicosService],
   exports: [],

@@ -13,11 +13,15 @@ import { CreateReservaDto } from '../dtos/input/create-reserva.dto.js';
 import { ListReservaDTO } from '../dtos/output/list-reserva.dto.js';
 import { ReservasService } from '../services/reservas.service.js';
 
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../auth/guards/auth.guard.js';
+
 @Controller('reservas')
 export class ReservasController {
   constructor(private readonly service: ReservasService) {}
 
   @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @ApiOkResponse({
     type: ListReservaDTO,
     isArray: true,
@@ -30,6 +34,7 @@ export class ReservasController {
   }
 
   @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Post('pacientes/:idPaciente')
   async crearReserva(
     @Param('idPaciente', ParseIntPipe) idPaciente: number,
@@ -39,6 +44,7 @@ export class ReservasController {
   }
 
   @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Put('pacientes/:idPaciente/:idReserva/cancelar')
   async cancelarReservaPaciente(
     @Param('idPaciente', ParseIntPipe) idPaciente: number,
@@ -48,6 +54,7 @@ export class ReservasController {
   }
 
   @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Put('administradores/:idReserva/cancelar')
   async cancelarReservaAdministrador(
     @Param('idReserva', ParseIntPipe) idReserva: number,

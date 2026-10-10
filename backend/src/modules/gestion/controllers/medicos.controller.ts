@@ -14,6 +14,9 @@ import { ListTurnoMedicoDTO } from '../dtos/output/list-turno-medico.dto.js';
 import { MedicosService } from '../services/medicos.service.js';
 import { ReservasService } from '../services/reservas.service.js';
 
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../auth/guards/auth.guard.js';
+
 @Controller('medicos')
 export class MedicosController {
   constructor(
@@ -22,6 +25,7 @@ export class MedicosController {
   ) {}
 
   @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Put(':id')
   async actualizarValorConsulta(
     @Param('id', ParseIntPipe) id: number,
@@ -31,6 +35,7 @@ export class MedicosController {
   }
 
   @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @ApiOkResponse({
     type: ListTurnoMedicoDTO,
     isArray: true,
@@ -49,6 +54,7 @@ export class MedicosController {
   }
 
   @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Put(':idMedico/reservas/:idReserva/atendido')
   async marcarAtendido(
     @Param('idMedico', ParseIntPipe) idMedico: number,
@@ -58,6 +64,7 @@ export class MedicosController {
   }
 
   @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Put(':idMedico/reservas/:idReserva/ausente')
   async marcarAusente(
     @Param('idMedico', ParseIntPipe) idMedico: number,
