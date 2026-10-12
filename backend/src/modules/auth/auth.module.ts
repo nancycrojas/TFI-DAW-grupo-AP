@@ -7,6 +7,7 @@ import { LoginController } from './controllers/login.controller.js';
 import { Usuario } from './entities/usuario.entity.js';
 
 import { AuthGuard } from './guards/auth.guard.js';
+import { RolesGuard } from './guards/roles.guard.js';
 import { AuthService } from './services/auth.service.js';
 import { UsuariosService } from './services/usuarios.service.js';
 
@@ -29,8 +30,8 @@ import { UsuariosService } from './services/usuarios.service.js';
 
   controllers: [LoginController],
 
-  providers: [UsuariosService, AuthService, AuthGuard],
+  providers: [UsuariosService, AuthService, AuthGuard, RolesGuard],
 
-  exports: [AuthGuard],
+  exports: [AuthGuard, RolesGuard],
 })
 export class AuthModule {}

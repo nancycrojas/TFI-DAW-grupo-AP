@@ -15,13 +15,18 @@ import { ReservasService } from '../services/reservas.service.js';
 
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../auth/guards/auth.guard.js';
+import { RolesGuard } from '../../auth/guards/roles.guard.js';
+
+import { Roles } from '../../auth/decorators/roles.decorator.js';
+import { RolesUsuariosEnum } from '../../auth/enums/roles-usuarios.enum.js';
 
 @Controller('reservas')
 export class ReservasController {
   constructor(private readonly service: ReservasService) {}
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolesUsuariosEnum.PACIENTE)
   @ApiOkResponse({
     type: ListReservaDTO,
     isArray: true,
@@ -34,7 +39,8 @@ export class ReservasController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolesUsuariosEnum.PACIENTE)
   @Post('pacientes/:idPaciente')
   async crearReserva(
     @Param('idPaciente', ParseIntPipe) idPaciente: number,
@@ -44,7 +50,8 @@ export class ReservasController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolesUsuariosEnum.PACIENTE)
   @Put('pacientes/:idPaciente/:idReserva/cancelar')
   async cancelarReservaPaciente(
     @Param('idPaciente', ParseIntPipe) idPaciente: number,
@@ -54,7 +61,8 @@ export class ReservasController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolesUsuariosEnum.ADMINISTRADOR)
   @Put('administradores/:idReserva/cancelar')
   async cancelarReservaAdministrador(
     @Param('idReserva', ParseIntPipe) idReserva: number,

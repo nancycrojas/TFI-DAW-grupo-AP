@@ -16,6 +16,10 @@ import { ReservasService } from '../services/reservas.service.js';
 
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../auth/guards/auth.guard.js';
+import { RolesGuard } from '../../auth/guards/roles.guard.js';
+
+import { Roles } from '../../auth/decorators/roles.decorator.js';
+import { RolesUsuariosEnum } from '../../auth/enums/roles-usuarios.enum.js';
 
 @Controller('medicos')
 export class MedicosController {
@@ -25,7 +29,8 @@ export class MedicosController {
   ) {}
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolesUsuariosEnum.ADMINISTRADOR)
   @Put(':id')
   async actualizarValorConsulta(
     @Param('id', ParseIntPipe) id: number,
@@ -35,7 +40,8 @@ export class MedicosController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolesUsuariosEnum.MEDICO)
   @ApiOkResponse({
     type: ListTurnoMedicoDTO,
     isArray: true,
@@ -54,7 +60,8 @@ export class MedicosController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolesUsuariosEnum.MEDICO)
   @Put(':idMedico/reservas/:idReserva/atendido')
   async marcarAtendido(
     @Param('idMedico', ParseIntPipe) idMedico: number,
@@ -64,7 +71,8 @@ export class MedicosController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolesUsuariosEnum.MEDICO)
   @Put(':idMedico/reservas/:idReserva/ausente')
   async marcarAusente(
     @Param('idMedico', ParseIntPipe) idMedico: number,
