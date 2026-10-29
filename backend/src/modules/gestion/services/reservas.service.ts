@@ -1,9 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Between, FindOptionsWhere, Repository } from 'typeorm';
 
 import { Usuario } from '../../auth/entities/usuario.entity.js';
-import type { Medico } from '../entities/medico.entity.js';
 import { Reserva } from '../entities/reserva.entity.js';
 import { MedicosService } from './medicos.service.js';
 
@@ -14,6 +13,8 @@ import { EstadosUsuariosEnum } from '../../auth/enums/estados-usuarios.enum.js';
 import { RolesUsuariosEnum } from '../../auth/enums/roles-usuarios.enum.js';
 import { ListReservaDTO } from '../dtos/output/list-reserva.dto.js';
 import { EstadosReservasEnum } from '../enums/estados-reservas.enum.js';
+
+import { UsuarioToken } from '../../auth/decorators/usuario-actual.decorator.js';
 
 @Injectable()
 export class ReservasService {
@@ -28,9 +29,23 @@ export class ReservasService {
   ) {}
 
   async crearReserva(
-    idPaciente: number,
     dto: CreateReservaDto,
+    usuario: UsuarioToken,
   ): Promise<{ id: number }> {
+    let idPaciente: number;
+
+    if (usuario.rol === RolesUsuariosEnum.PACIENTE) {
+      idPaciente = usuario.sub;
+    } else if (usuario.rol === RolesUsuariosEnum.ADMINISTRADOR) {
+      if (!dto.idPaciente) {
+        throw new BadRequestException('Se debe indicar el paciente');
+      }
+
+      idPaciente = dto.idPaciente;
+    } else {
+      throw new BadRequestException('El usuario no puede realizar reservas');
+    }
+
     const paciente = await this.usuariosRepository.findOne({
       where: {
         id: idPaciente,
@@ -49,9 +64,7 @@ export class ReservasService {
       throw new BadRequestException('El usuario indicado no es un paciente');
     }
 
-    const medico: Medico = await this.medicosService.obtenerMedicoPorId(
-      dto.idMedico,
-    );
+    const medico = await this.medicosService.obtenerMedicoPorId(dto.idMedico);
 
     const fechaHora = new Date(dto.fechaHora);
 
@@ -77,7 +90,6 @@ export class ReservasService {
     reserva.idPaciente = idPaciente;
     reserva.fechaHora = fechaHora;
     reserva.estado = EstadosReservasEnum.ACTIVO;
-
     reserva.valorConsulta = medico.valorConsulta;
 
     await this.repository.save(reserva);
@@ -86,6 +98,7 @@ export class ReservasService {
       id: reserva.id,
     };
   }
+
   private validarFechaReserva(fechaHora: Date): void {
     const ahora = new Date();
 
@@ -117,11 +130,21 @@ export class ReservasService {
       );
     }
   }
-  async listarReservasPaciente(idPaciente: number): Promise<ListReservaDTO[]> {
+
+  async listarReservasPaciente(
+    idPaciente: number,
+    estado?: EstadosReservasEnum,
+  ): Promise<ListReservaDTO[]> {
+    const whereCondition: FindOptionsWhere<Reserva> = {
+      idPaciente,
+    };
+
+    if (estado) {
+      whereCondition.estado = estado;
+    }
+
     const reservas: Reserva[] = await this.repository.find({
-      where: {
-        idPaciente: idPaciente,
-      },
+      where: whereCondition,
       order: {
         fechaHora: 'ASC',
       },
@@ -134,6 +157,7 @@ export class ReservasService {
 
       dto.id = r.id;
       dto.idMedico = r.idMedico;
+      dto.idPaciente = r.idPaciente;
       dto.fechaHora = r.fechaHora;
       dto.estado = r.estado;
       dto.valorConsulta = r.valorConsulta;
@@ -207,10 +231,11 @@ export class ReservasService {
   }
 
   async listarTurnosMedico(
-    idMedico: number,
+    idUsuario: number,
     fecha: string,
   ): Promise<ListTurnoMedicoDTO[]> {
-    await this.medicosService.obtenerMedicoPorId(idMedico);
+    const medico =
+      await this.medicosService.obtenerMedicoPorIdUsuario(idUsuario);
 
     const inicio = new Date(`${fecha}T00:00:00`);
     const fin = new Date(`${fecha}T23:59:59.999`);
@@ -221,7 +246,7 @@ export class ReservasService {
 
     const reservas: Reserva[] = await this.repository.find({
       where: {
-        idMedico: idMedico,
+        idMedico: medico.id,
         fechaHora: Between(inicio, fin),
       },
       order: {
@@ -246,17 +271,23 @@ export class ReservasService {
     return dtoList;
   }
 
-  async marcarAtendido(idMedico: number, idReserva: number): Promise<void> {
+  async marcarAtendido(idReserva: number, idUsuario: number): Promise<void> {
+    const medico =
+      await this.medicosService.obtenerMedicoPorIdUsuario(idUsuario);
+
     await this.cambiarEstadoTurnoMedico(
-      idMedico,
+      medico.id,
       idReserva,
       EstadosReservasEnum.ATENDIDO,
     );
   }
 
-  async marcarAusente(idMedico: number, idReserva: number): Promise<void> {
+  async marcarAusente(idReserva: number, idUsuario: number): Promise<void> {
+    const medico =
+      await this.medicosService.obtenerMedicoPorIdUsuario(idUsuario);
+
     await this.cambiarEstadoTurnoMedico(
-      idMedico,
+      medico.id,
       idReserva,
       EstadosReservasEnum.AUSENTE,
     );
@@ -287,5 +318,37 @@ export class ReservasService {
     reserva.estado = estado;
 
     await this.repository.save(reserva);
+  }
+
+  async listarTodas(estado?: EstadosReservasEnum): Promise<ListReservaDTO[]> {
+    const whereCondition: FindOptionsWhere<Reserva> = {};
+
+    if (estado) {
+      whereCondition.estado = estado;
+    }
+
+    const reservas: Reserva[] = await this.repository.find({
+      where: whereCondition,
+      order: {
+        fechaHora: 'ASC',
+      },
+    });
+
+    const dtoList: ListReservaDTO[] = [];
+
+    for (const r of reservas) {
+      const dto = new ListReservaDTO();
+
+      dto.id = r.id;
+      dto.idMedico = r.idMedico;
+      dto.idPaciente = r.idPaciente;
+      dto.fechaHora = r.fechaHora;
+      dto.estado = r.estado;
+      dto.valorConsulta = r.valorConsulta;
+
+      dtoList.push(dto);
+    }
+
+    return dtoList;
   }
 }

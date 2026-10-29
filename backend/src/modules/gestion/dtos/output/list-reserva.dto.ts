@@ -19,4 +19,7 @@ export class ListReservaDTO {
 
   @ApiProperty()
   valorConsulta: number;
+
+  @ApiProperty()
+  idPaciente: number;
 }

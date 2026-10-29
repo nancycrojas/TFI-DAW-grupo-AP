@@ -22,6 +22,20 @@ export class MedicosService {
     return medico;
   }
 
+  async obtenerMedicoPorIdUsuario(idUsuario: number): Promise<Medico> {
+    const medico: Medico | null = await this.repository.findOne({
+      where: {
+        idUsuario: idUsuario,
+      },
+    });
+
+    if (!medico) {
+      throw new BadRequestException('No existe un médico asociado al usuario');
+    }
+
+    return medico;
+  }
+
   async actualizarValorConsulta(
     id: number,
     dto: UpdateMedicoDto,
