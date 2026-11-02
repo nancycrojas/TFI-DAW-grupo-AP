@@ -18,6 +18,10 @@ import { AuthStore, type UsuarioAutenticado } from '../../auth/auth-store';
 import { MessageService } from 'primeng/api';
 import { GestionReserva } from '../gestion/gestion-reserva';
 
+import { InputNumber } from 'primeng/inputnumber';
+import { ListMedicoDTO } from '../../medicos/listado/list-medico-dto';
+import { MedicosListadoApiClient } from '../../medicos/listado/medicos-listado-api-client';
+
 @Component({
   selector: 'app-reservas-listado',
   templateUrl: './reservas-listado.html',
@@ -33,6 +37,7 @@ import { GestionReserva } from '../gestion/gestion-reserva';
     DialogModule,
     Button,
     GestionReserva,
+    InputNumber,
   ],
 })
 export class ReservasListado implements OnInit {
@@ -41,6 +46,8 @@ export class ReservasListado implements OnInit {
   private readonly authStore: AuthStore = inject(AuthStore);
 
   private readonly messageService: MessageService = inject(MessageService);
+
+  private readonly medicosApiClient: MedicosListadoApiClient = inject(MedicosListadoApiClient);
 
   reservas = signal<ListReservaDTO[]>([]);
 
@@ -51,6 +58,14 @@ export class ReservasListado implements OnInit {
   mostrarGestion = signal<boolean>(false);
 
   usuario: UsuarioAutenticado | null = null;
+
+  medicos = signal<ListMedicoDTO[]>([]);
+
+  medicoSeleccionado = signal<ListMedicoDTO | null>(null);
+
+  nuevoValorConsulta = signal<number | null>(null);
+
+  mostrarGestionMedico = signal<boolean>(false);
 
   opcionesEstado = [
     { label: 'Todos', value: null },
@@ -222,5 +237,57 @@ export class ReservasListado implements OnInit {
   reservaCreada(): void {
     this.mostrarGestion.set(false);
     this.cargarReservas();
+  }
+
+  gestionarMedicos(): void {
+    this.medicosApiClient.obtenerMedicos().subscribe({
+      next: (medicos) => {
+        this.medicos.set(medicos);
+        this.mostrarGestionMedico.set(true);
+      },
+    });
+  }
+
+  seleccionarMedico(medico: ListMedicoDTO): void {
+    this.medicoSeleccionado.set(medico);
+    this.nuevoValorConsulta.set(medico.valorConsulta);
+  }
+
+  actualizarValorConsulta(): void {
+    const medico = this.medicoSeleccionado();
+    const valorConsulta = this.nuevoValorConsulta();
+
+    if (!medico || !valorConsulta || valorConsulta <= 0) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Debe seleccionar un médico e indicar un valor válido',
+      });
+
+      return;
+    }
+
+    this.medicosApiClient.actualizarValorConsulta(medico.id, valorConsulta).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Valor de consulta actualizado correctamente',
+        });
+
+        this.mostrarGestionMedico.set(false);
+        this.medicoSeleccionado.set(null);
+        this.nuevoValorConsulta.set(null);
+      },
+
+      error: (err) => {
+        const mensaje = Array.isArray(err.error?.message)
+          ? err.error.message.join('. ')
+          : (err.error?.message ?? 'Ha ocurrido un error al actualizar el valor');
+
+        this.messageService.add({
+          severity: 'error',
+          summary: mensaje,
+        });
+      },
+    });
   }
 }

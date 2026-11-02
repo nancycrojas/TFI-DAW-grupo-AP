@@ -13,4 +13,8 @@ export class MedicosListadoApiClient {
   obtenerMedicos(): Observable<ListMedicoDTO[]> {
     return this.httpClient.get<ListMedicoDTO[]>('/api/v1/medicos');
   }
+
+  actualizarValorConsulta(id: number, valorConsulta: number): Observable<void> {
+    return this.httpClient.put<void>(`/api/v1/medicos/${id}`, { valorConsulta });
+  }
 }

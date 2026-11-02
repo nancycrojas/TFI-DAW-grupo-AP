@@ -34,6 +34,15 @@
         />
       </div>
     }
+
+    @if (esAdministrador()) {
+      <p-button
+        label="Gestionar médicos"
+        icon="pi pi-user-edit"
+        [outlined]="true"
+        (click)="gestionarMedicos()"
+      />
+    }
   </div>
 
   <p-table
@@ -128,5 +137,56 @@
     [style]="{ width: '30rem' }"
   >
     <app-gestion-reserva (reservaCreada)="reservaCreada()" />
+  </p-dialog>
+  <p-dialog
+    header="Gestión de médicos"
+    [(visible)]="mostrarGestionMedico"
+    [modal]="true"
+    [style]="{
+      width: '35rem',
+      minHeight: '28rem',
+    }"
+  >
+    <div class="gestion-medicos">
+      <label>Médico</label>
+
+      <p-select
+        [options]="medicos()"
+        optionLabel="nombre"
+        placeholder="Seleccione un médico"
+        [ngModel]="medicoSeleccionado()"
+        (ngModelChange)="seleccionarMedico($event)"
+        [fluid]="true"
+        appendTo="body"
+      />
+
+      @if (medicoSeleccionado()) {
+        <div class="datos-medico">
+          <span>
+            Matrícula:
+            {{ medicoSeleccionado()?.matricula }}
+          </span>
+
+          <span>
+            Valor actual:
+            {{ medicoSeleccionado()?.valorConsulta | currency: 'ARS' : 'symbol' : '1.0-0' }}
+          </span>
+        </div>
+
+        <label for="nuevoValor"> Nuevo valor de consulta </label>
+
+        <p-inputnumber
+          inputId="nuevoValor"
+          [ngModel]="nuevoValorConsulta()"
+          (ngModelChange)="nuevoValorConsulta.set($event)"
+          mode="currency"
+          currency="ARS"
+          locale="es-AR"
+          [fluid]="true"
+        />
+
+        <p-button label="Actualizar valor" icon="pi pi-save" (click)="actualizarValorConsulta()" />
+      }
+    </div>
   </p-dialog>
 </app-template>

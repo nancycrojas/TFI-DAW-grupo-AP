@@ -60,4 +60,19 @@
     gap: 0.5rem;
     flex-wrap: wrap;
   }
+
+  .gestion-medicos {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .datos-medico {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background-color: #f4f6f8;
+    border-radius: 6px;
+  }
 }
