@@ -1,0 +1,35 @@
+<form [formGroup]="form">
+  <div id="formulario">
+    @if (esAdministrador()) {
+      <label for="idPaciente">Paciente</label>
+
+      <p-select
+        inputId="idPaciente"
+        formControlName="idPaciente"
+        [options]="pacientes()"
+        optionLabel="nombre"
+        optionValue="id"
+        placeholder="Seleccione un paciente"
+        [fluid]="true"
+      />
+    }
+
+    <label for="idMedico">Médico</label>
+
+    <p-select
+      inputId="idMedico"
+      formControlName="idMedico"
+      [options]="medicos()"
+      optionLabel="nombre"
+      optionValue="id"
+      placeholder="Seleccione un médico"
+      [fluid]="true"
+    />
+
+    <label for="fechaHora">Fecha y hora</label>
+
+    <input id="fechaHora" type="datetime-local" formControlName="fechaHora" />
+
+    <p-button label="Reservar turno" icon="pi pi-calendar-plus" (click)="guardar()" />
+  </div>
+</form>

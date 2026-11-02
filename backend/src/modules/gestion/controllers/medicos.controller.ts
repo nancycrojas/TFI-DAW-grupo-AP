@@ -20,6 +20,7 @@ import { RolesGuard } from '../../auth/guards/roles.guard.js';
 
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 import { RolesUsuariosEnum } from '../../auth/enums/roles-usuarios.enum.js';
+import { ListMedicoDTO } from '../dtos/output/list-medico.dto.js';
 
 @Controller('medicos')
 export class MedicosController {
@@ -79,5 +80,17 @@ export class MedicosController {
     @Param('idReserva', ParseIntPipe) idReserva: number,
   ): Promise<void> {
     await this.reservasService.marcarAusente(idMedico, idReserva);
+  }
+
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    type: ListMedicoDTO,
+    isArray: true,
+  })
+  @Roles(RolesUsuariosEnum.PACIENTE, RolesUsuariosEnum.ADMINISTRADOR)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Get()
+  async listarMedicos(): Promise<ListMedicoDTO[]> {
+    return await this.service.listarMedicos();
   }
 }

@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { LoginController } from './controllers/login.controller.js';
+import { UsuariosController } from './controllers/usuarios.controller.js';
 import { Usuario } from './entities/usuario.entity.js';
 
 import { AuthGuard } from './guards/auth.guard.js';
@@ -28,7 +29,7 @@ import { UsuariosService } from './services/usuarios.service.js';
     }),
   ],
 
-  controllers: [LoginController],
+  controllers: [LoginController, UsuariosController],
 
   providers: [UsuariosService, AuthService, AuthGuard, RolesGuard],
 

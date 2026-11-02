@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { UpdateMedicoDto } from '../dtos/input/update-medico.dto.js';
+import { ListMedicoDTO } from '../dtos/output/list-medico.dto.js';
 import { Medico } from '../entities/medico.entity.js';
 
 @Injectable()
@@ -45,5 +46,31 @@ export class MedicosService {
     this.repository.merge(medico, dto);
 
     await this.repository.save(medico);
+  }
+
+  async listarMedicos(): Promise<ListMedicoDTO[]> {
+    const medicos: Medico[] = await this.repository.find({
+      relations: {
+        usuario: true,
+      },
+      order: {
+        id: 'ASC',
+      },
+    });
+
+    const dtoList: ListMedicoDTO[] = [];
+
+    for (const m of medicos) {
+      const dto = new ListMedicoDTO();
+
+      dto.id = m.id;
+      dto.nombre = `${m.usuario.apellidos}, ${m.usuario.nombres}`;
+      dto.matricula = m.matricula;
+      dto.valorConsulta = m.valorConsulta;
+
+      dtoList.push(dto);
+    }
+
+    return dtoList;
   }
 }

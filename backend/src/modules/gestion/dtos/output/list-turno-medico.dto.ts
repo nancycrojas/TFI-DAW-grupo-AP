@@ -19,4 +19,7 @@ export class ListTurnoMedicoDTO {
 
   @ApiProperty()
   valorConsulta: number;
+
+  @ApiProperty()
+  paciente: string;
 }

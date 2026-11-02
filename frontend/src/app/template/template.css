@@ -1,0 +1,42 @@
+#header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 10vh;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 1000;
+}
+
+#nombre-de-proyecto {
+  font-size: 1rem;
+}
+
+#content {
+  position: fixed;
+  margin-top: 10vh;
+  width: 100%;
+  height: 90vh;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+::ng-deep .p-button {
+  font-size: 0.8rem !important;
+}
+
+@media (min-width: 768px) {
+  #nombre-de-proyecto {
+    font-size: 1.5rem;
+  }
+
+  ::ng-deep .p-button {
+    font-size: 1rem !important;
+  }
+}

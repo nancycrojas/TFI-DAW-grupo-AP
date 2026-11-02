@@ -1,0 +1,63 @@
+#header-listado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+#header-listado h2 {
+  margin: 0;
+}
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+#filtro-estado {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#filtro-estado label {
+  font-weight: 500;
+}
+
+@media (max-width: 767px) {
+  #header-listado {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+#filtro-fecha {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#filtro-fecha label {
+  font-weight: 500;
+}
+
+#filtro-fecha input {
+  padding: 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+
+@media (max-width: 767px) {
+  #header-listado {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .acciones-medico {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+}

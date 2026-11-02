@@ -22,4 +22,10 @@ export class ListReservaDTO {
 
   @ApiProperty()
   idPaciente: number;
+
+  @ApiProperty()
+  medico: string;
+
+  @ApiProperty()
+  paciente: string;
 }

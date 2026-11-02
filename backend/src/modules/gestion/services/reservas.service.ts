@@ -145,6 +145,12 @@ export class ReservasService {
 
     const reservas: Reserva[] = await this.repository.find({
       where: whereCondition,
+      relations: {
+        paciente: true,
+        medico: {
+          usuario: true,
+        },
+      },
       order: {
         fechaHora: 'ASC',
       },
@@ -158,6 +164,8 @@ export class ReservasService {
       dto.id = r.id;
       dto.idMedico = r.idMedico;
       dto.idPaciente = r.idPaciente;
+      dto.medico = `${r.medico.usuario.apellidos}, ${r.medico.usuario.nombres}`;
+      dto.paciente = `${r.paciente.apellidos}, ${r.paciente.nombres}`;
       dto.fechaHora = r.fechaHora;
       dto.estado = r.estado;
       dto.valorConsulta = r.valorConsulta;
@@ -249,6 +257,9 @@ export class ReservasService {
         idMedico: medico.id,
         fechaHora: Between(inicio, fin),
       },
+      relations: {
+        paciente: true,
+      },
       order: {
         fechaHora: 'ASC',
       },
@@ -264,6 +275,7 @@ export class ReservasService {
       dto.fechaHora = r.fechaHora;
       dto.estado = r.estado;
       dto.valorConsulta = r.valorConsulta;
+      dto.paciente = `${r.paciente.apellidos}, ${r.paciente.nombres}`;
 
       dtoList.push(dto);
     }
@@ -329,6 +341,12 @@ export class ReservasService {
 
     const reservas: Reserva[] = await this.repository.find({
       where: whereCondition,
+      relations: {
+        paciente: true,
+        medico: {
+          usuario: true,
+        },
+      },
       order: {
         fechaHora: 'ASC',
       },
@@ -342,6 +360,8 @@ export class ReservasService {
       dto.id = r.id;
       dto.idMedico = r.idMedico;
       dto.idPaciente = r.idPaciente;
+      dto.medico = `${r.medico.usuario.apellidos}, ${r.medico.usuario.nombres}`;
+      dto.paciente = `${r.paciente.apellidos}, ${r.paciente.nombres}`;
       dto.fechaHora = r.fechaHora;
       dto.estado = r.estado;
       dto.valorConsulta = r.valorConsulta;

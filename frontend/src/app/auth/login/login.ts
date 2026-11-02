@@ -50,7 +50,7 @@ export class Login {
         });
 
         setTimeout(() => {
-          this.router.navigateByUrl('/');
+          this.router.navigateByUrl('/reservas');
         }, 800);
       },
       error: (err) => {
