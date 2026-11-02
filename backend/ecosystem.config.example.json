@@ -1,0 +1,21 @@
+{
+  "apps": [
+    {
+      "name": "clinica",
+      "script": "dist/main.js",
+      "env": {
+        "NODE_ENV": "production",
+        "PORT": 4000,
+        "DB_HOST": "localhost",
+        "DB_PORT": 5432,
+        "DB_USERNAME": "daw",
+        "DB_PASSWORD": "TU_DB_PASSWORD",
+        "DB_NAME": "clinica",
+        "DB_LOGGING": "false",
+        "SWAGGER_HABILITADO": false,
+        "JWT_SECRET": "TU_JWT_SECRET"
+      },
+      "time": true
+    }
+  ]
+}

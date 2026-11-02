@@ -62,3 +62,9 @@ lerna-debug.log*
 **/.env
 **/.env.*
 !**/.env.example
+
+# Configuración local PM2 con secretos
+**/ecosystem.config.json
+
+# Certificados y claves privadas
+*.pem
